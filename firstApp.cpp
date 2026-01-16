@@ -25,6 +25,11 @@ GLuint createShaderProgram() {
     glAttachShader(vfProgram, vShader);
     glAttachShader(vfProgram, fShader);
     glLinkProgram(vfProgram);
+    int linkingError = 0;
+    glGetProgramiv(vfProgram, GL_LINK_STATUS, &linkingError);
+    if (linkingError == 1) {
+        cout << "linking error." << endl;
+    }
     return vfProgram;
 }
 
