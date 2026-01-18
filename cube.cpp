@@ -9,6 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <random>
 #include <vector>
+#include <thread>
 
 #define numVAOs 1
 #define numVBOs 2
@@ -18,20 +19,21 @@ using namespace std;
 GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
+GLuint InstanceVBO;
 GLuint mvLoc, projLoc;
 int width, height;
 float aspect;
 glm::mat4 pmat, vMat, mMat, mvMat;
 float degree = 0;
-float cubes[5000];
-float cubes_x[5000];
-float cubes_y[5000];
-float cubes_z[5000];
-float velocityDirection[5000][3];
-float rotationChange[5000][3];
-float rotation_x[5000];
-float rotation_y[5000];
-float rotation_z[5000];
+float cubes[50000];
+float cubes_x[50000];
+float cubes_y[50000];
+float cubes_z[50000];
+float velocityDirection[50000][3];
+float rotationChange[50000][3];
+float rotation_x[50000];
+float rotation_y[50000];
+float rotation_z[50000];
 
 void setupVertices(void) {
     float vertexPositions[108] = {
@@ -90,7 +92,7 @@ GLuint createShaderProgram() {
 void init() {
     renderingProgram = createShaderProgram();
     setupVertices();
-    for (int i = 0; i < 5000; i++) {
+    for (int i = 0; i < 50000; i++) {
         random_device rd;
         mt19937 gen(rd());
         uniform_real_distribution<float> dis(0.0f, 1.0f);
@@ -122,50 +124,68 @@ void init() {
         rotationChange[i][1] = DeltaRotation(gen);
         rotationChange[i][2] = DeltaRotation(gen);
     }  
+    glGenBuffers(1, &InstanceVBO);
+    glBindVertexArray(vao[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, InstanceVBO);
+    for(int i = 0; i < 4; i++)
+    {
+        GLuint loc = 3 + i;
+        glEnableVertexAttribArray(loc);
+        glVertexAttribPointer(loc, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(i * sizeof(glm::vec4)));
+        glVertexAttribDivisor(loc, 1); 
+    }
+
+    glBindVertexArray(0);
 }
 
 void display(GLFWwindow* window, double currentTime) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (int i = 0; i < 5000; i++) {
-        glUseProgram(renderingProgram);
-        mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
-        projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
-        glfwGetFramebufferSize(window, &width, &height);
-        aspect = (float)width / (float)height;
+    glUseProgram(renderingProgram);
+    projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
+    glfwGetFramebufferSize(window, &width, &height);
+    aspect = (float)width / (float)height;
+    int i = 0;
+    int o = 0;
+    for (i; i < 50000; i++) {
         auto pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
-        random_device rd;
-        mt19937 gen(rd());
-        uniform_real_distribution<float> dis(-0.001, 0.001);
-        velocityDirection[i][0] += dis(gen);
-        velocityDirection[i][1] += dis(gen);
-        velocityDirection[i][2] += dis(gen);
-        cubes_x[i] += velocityDirection[i][0];
-        cubes_y[i] += velocityDirection[i][1];
-        cubes_z[i] += velocityDirection[i][2];
-        vMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
-        mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubes_x[i], cubes_y[i], cubes_z[i]));
-        mMat = glm::scale(mMat, glm::vec3(cubes[i]));
-        uniform_real_distribution<float> DeltaRotation(-0.2f, 0.2f);
-        rotationChange[i][0] += DeltaRotation(gen);
-        rotationChange[i][1] += DeltaRotation(gen);
-        rotationChange[i][2] += DeltaRotation(gen);
-        rotation_x[i] += rotationChange[i][0];
-        rotation_y[i] += rotationChange[i][1];
-        rotation_z[i] += rotationChange[i][2];
-        mMat = glm::rotate(mMat, glm::radians(rotation_x[i]), glm::vec3(1.0f, 0.0f, 0.0f));
-        mMat = glm::rotate(mMat, glm::radians(rotation_y[i]), glm::vec3(0.0f, 1.0f, 0.0f));
-        mMat = glm::rotate(mMat, glm::radians(rotation_z[i]), glm::vec3(0.0f, 0.0f, 1.0f));
-        mvMat = vMat * mMat;
-        glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+        vector<glm::mat4> instantMatrices(5000);
+        for (i; i < (5000 + o*5000); i++) {
+            random_device rd;
+            mt19937 gen(rd());
+            uniform_real_distribution<float> dis(-0.001, 0.001);
+            velocityDirection[i][0] += dis(gen);
+            velocityDirection[i][1] += dis(gen);
+            velocityDirection[i][2] += dis(gen);
+            cubes_x[i] += velocityDirection[i][0];
+            cubes_y[i] += velocityDirection[i][1];
+            cubes_z[i] += velocityDirection[i][2];
+            vMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+            mMat = glm::translate(glm::mat4(1.0f), glm::vec3(cubes_x[i], cubes_y[i], cubes_z[i]));
+            mMat = glm::scale(mMat, glm::vec3(cubes[i]));
+            uniform_real_distribution<float> DeltaRotation(-0.2f, 0.2f);
+            rotationChange[i][0] += DeltaRotation(gen);
+            rotationChange[i][1] += DeltaRotation(gen);
+            rotationChange[i][2] += DeltaRotation(gen);
+            rotation_x[i] += rotationChange[i][0];
+            rotation_y[i] += rotationChange[i][1];
+            rotation_z[i] += rotationChange[i][2];
+            mMat = glm::rotate(mMat, glm::radians(rotation_x[i]), glm::vec3(1.0f, 0.0f, 0.0f));
+            mMat = glm::rotate(mMat, glm::radians(rotation_y[i]), glm::vec3(0.0f, 1.0f, 0.0f));
+            mvMat = vMat * mMat;
+            instantMatrices[i - o*5000] = mvMat;
+        }
+        glBindBuffer(GL_ARRAY_BUFFER, InstanceVBO);
+        glBufferData(GL_ARRAY_BUFFER, 5000 * sizeof(glm::mat4), instantMatrices.data(), GL_DYNAMIC_DRAW);
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
         glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(0);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(vao[0]);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 36, 5000);
+        o++;
     }
-
 }
 
 int main() {
