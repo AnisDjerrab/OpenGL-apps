@@ -8,8 +8,8 @@
 #include <cmath>
 #include <fstream>
 
-#define numVAOs 1
-#define numVBOs 2
+#define numVAOs 2
+#define numVBOs 4
 
 using namespace std;
 
@@ -17,6 +17,7 @@ GLuint renderingProgram;
 GLuint vao[numVAOs];
 GLuint vbo[numVBOs];
 GLuint textureID;
+GLuint sandID;
 int width, height;
 float aspect;
 
@@ -34,14 +35,31 @@ void setupVertices(void) {
     0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
     0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
     0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
-    1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f };
-    glGenVertexArrays(1, vao);
+    0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
+    float rectanglesPosition[12] {
+        -1.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 0.0f,
+        -1.0f, 0.0f, 0.0f
+    };
+    float groundTexCoords[] = {
+        0.0f,    0.0f,
+        8.0f,    0.0f,    
+        8.0f,    8.0f,
+        0.0f,    8.0f
+    };
+    glGenVertexArrays(2, vao);
     glBindVertexArray(vao[0]);
     glGenBuffers(numVBOs, vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(TexCoords), TexCoords, GL_STATIC_DRAW);
+    glBindVertexArray(vao[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(rectanglesPosition), rectanglesPosition, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(groundTexCoords), groundTexCoords, GL_STATIC_DRAW);
 }
 
 GLuint createShaderProgram() {
@@ -82,6 +100,12 @@ void init() {
     setupVertices();
     // load the brick wall texture
     textureID = SOIL_load_OGL_texture("assets/brick_wall.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
+    sandID = SOIL_load_OGL_texture("assets/sand.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);  
+    glBindTexture(GL_TEXTURE_2D, sandID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);   
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 void display(GLFWwindow* window, double currentTime) {
@@ -107,6 +131,19 @@ void display(GLFWwindow* window, double currentTime) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glDrawArrays(GL_TRIANGLES, 0, 18);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+    glActiveTexture(GL_TEXTURE1);
+    mvMat = glm::translate(glm::mat4(1.0f), glm::vec3(-500.0f, 500.0f, -1500.0f));
+    mvMat = glm::rotate(mvMat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    mvMat = glm::scale(mvMat, glm::vec3(1000.0f, 1.0f, 1000.0f));
+    glBindTexture(GL_TEXTURE_2D, sandID);
+    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
 int main() {
