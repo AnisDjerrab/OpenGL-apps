@@ -9,7 +9,7 @@
 #include <fstream>
 
 #define numVAOs 2
-#define numVBOs 4
+#define numVBOs 5
 
 using namespace std;
 
@@ -22,31 +22,38 @@ int width, height;
 float aspect;
 
 void setupVertices(void) {
-    float vertexPositions[54] = { -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 
-        1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f
+    float vertexPositions[54] = { -75.0f, -75.0f, 75.0f, 75.0f, -75.0f, 75.0f, 0.0f, 75.0f, 0.0f,
+        75.0f, -75.0f, 75.0f, 75.0f, -75.0f, -75.0f, 0.0f, 75.0f, 0.0f,
+        75.0f, -75.0f, -75.0f, -75.0f, -75.0f, -75.0f, 0.0f, 75.0f, 0.0f,
+        -75.0f, -75.0f, -75.0f, -75.0f, -75.0f, 75.0f, 0.0f, 75.0f, 0.0f,
+        -75.0f, -75.0f, -75.0f, 75.0f, -75.0f, 75.0f, -75.0f, -75.0f, 75.0f, 
+        75.0f, -75.0f, 75.0f, -75.0f, -75.0f, -75.0f, 75.0f, -75.0f, -75.0f
+    };
+    float vertexPositionsSmall[54] = { -45.0f, -45.0f, 45.0f, 45.0f, -45.0f, 45.0f, 0.0f, 45.0f, 0.0f,
+        45.0f, -45.0f, 45.0f, 45.0f, -45.0f, -45.0f, 0.0f, 45.0f, 0.0f,
+        45.0f, -45.0f, -45.0f, -45.0f, -45.0f, -45.0f, 0.0f, 45.0f, 0.0f,
+        -45.0f, -45.0f, -45.0f, -45.0f, -45.0f, 45.0f, 0.0f, 45.0f, 0.0f,
+        -45.0f, -45.0f, -45.0f, 45.0f, -45.0f, 45.0f, -45.0f, -45.0f, 45.0f, 
+        45.0f, -45.0f, 45.0f, -45.0f, -45.0f, -45.0f, 45.0f, -45.0f, -45.0f
     };
     float TexCoords[36] = {
-    0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
-    0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
-    0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-    0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
-    0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 1.0f,
-    0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
+    0.0f, 0.0f, 9.0f, 0.0f, 0.5f, 9.0f,
+    0.0f, 0.0f, 9.0f, 0.0f, 0.5f, 9.0f,
+    0.0f, 0.0f, 9.0f, 9.0f, 0.0f, 9.0f,
+    0.0f, 0.0f, 9.0f, 0.0f, 0.5f, 9.0f,
+    0.0f, 0.0f, 9.0f, 0.0f, 0.5f, 9.0f,
+    0.0f, 0.0f, 9.0f, 9.0f, 0.0f, 9.0f };
     float rectanglesPosition[12] {
-        -1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 1.0f,
-        1.0f, 0.0f, 0.0f,
-        -1.0f, 0.0f, 0.0f
+        -1000.0f, 0.0f, -1000.0f,
+        1000.0f, 0.0f, -1000.0f,
+        1000.0f, 0.0f,  1000.0f,
+        -1000.0f, 0.0f,  1000.0f
     };
     float groundTexCoords[] = {
         0.0f,    0.0f,
-        8.0f,    0.0f,    
-        8.0f,    8.0f,
-        0.0f,    8.0f
+        100.0f,    0.0f,    
+        100.0f,    100.0f,
+        0.0f,    100.0f
     };
     glGenVertexArrays(2, vao);
     glBindVertexArray(vao[0]);
@@ -55,6 +62,8 @@ void setupVertices(void) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositions), vertexPositions, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(TexCoords), TexCoords, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPositionsSmall), vertexPositionsSmall, GL_STATIC_DRAW);
     glBindVertexArray(vao[1]);
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(rectanglesPosition), rectanglesPosition, GL_STATIC_DRAW);
@@ -102,13 +111,10 @@ void init() {
     textureID = SOIL_load_OGL_texture("assets/brick_wall.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);
     sandID = SOIL_load_OGL_texture("assets/sand.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_INVERT_Y);  
     glBindTexture(GL_TEXTURE_2D, sandID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);   
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 void display(GLFWwindow* window, double currentTime) {
+    glClearColor(0.53f, 0.81f, 0.92f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(renderingProgram);
     glfwGetFramebufferSize(window, &width, &height);
@@ -116,7 +122,9 @@ void display(GLFWwindow* window, double currentTime) {
     auto mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
     auto projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
     auto mvMat = glm::mat4(1.0f);
-    mvMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 2.0f, -5.0f));
+    mvMat = glm::translate(mvMat, glm::vec3(75.0f, 100.0f, -345.0f));
+    mvMat = glm::rotate(mvMat, glm::radians(10.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    mvMat = glm::rotate(mvMat, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     auto pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(pMat));
@@ -128,20 +136,51 @@ void display(GLFWwindow* window, double currentTime) {
     glEnableVertexAttribArray(1);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    float anisoSetting = 0.0f;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisoSetting);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);   
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+    glDrawArrays(GL_TRIANGLES, 0, 18);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]); 
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+    mvMat = glm::mat4(1.0f);
+    mvMat = glm::translate(mvMat, glm::vec3(0.0f, 60.0f, -245.0f));
+    mvMat = glm::rotate(mvMat, glm::radians(10.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    mvMat = glm::rotate(mvMat, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
     glDrawArrays(GL_TRIANGLES, 0, 18);
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]); 
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(1);
-    glActiveTexture(GL_TEXTURE1);
-    mvMat = glm::translate(glm::mat4(1.0f), glm::vec3(-500.0f, 500.0f, -1500.0f));
-    mvMat = glm::rotate(mvMat, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    mvMat = glm::scale(mvMat, glm::vec3(1000.0f, 1.0f, 1000.0f));
+    mvMat = glm::translate(glm::mat4(1.0f), glm::vec3(5.0f, -5.5f, -5.0f));
+    mvMat = glm::rotate(mvMat, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    mvMat = glm::rotate(mvMat, glm::radians(10.0f), glm::vec3(1.0f, 0.0f, 1.0f));
     glBindTexture(GL_TEXTURE_2D, sandID);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    anisoSetting = 0.0f;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &anisoSetting);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);   
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisoSetting);
+    glActiveTexture(GL_TEXTURE0);
     glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mvMat));
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
