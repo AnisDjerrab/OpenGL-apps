@@ -189,7 +189,7 @@ int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    GLFWwindow* window = glfwCreateWindow(800, 800, "cube", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 800, "pyramids", nullptr, nullptr);
     glfwMakeContextCurrent(window);
     glViewport(0, 0, 800, 800);
     glEnable(GL_PROGRAM_POINT_SIZE);
