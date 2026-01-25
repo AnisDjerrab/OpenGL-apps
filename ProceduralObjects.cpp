@@ -64,10 +64,10 @@ void SetupVertices()
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
     glBufferData(GL_ARRAY_BUFFER, nvalues.size() * 4, &nvalues[0], GL_STATIC_DRAW);
     float rectanglesPosition[] = {
-        -10.0f, -10.0f, -10.0f,
-        10.0f, -10.0f, -10.0f,
-        10.0f,  10.0f, -10.0f,
-        -10.0f,  10.0f, -10.0f
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f,  1.0f, -1.0f,
+        -1.0f,  1.0f, -1.0f
     };
     float groundTexCoords[] = {
         0.0f,    0.0f,
