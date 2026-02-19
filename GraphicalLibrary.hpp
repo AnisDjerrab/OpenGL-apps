@@ -1,6 +1,7 @@
 #include <cmath>
 #include <vector>
 #include <iostream>
+#include "libs/SOIL2.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -139,13 +140,14 @@ private:
     double lastTime;
     double framesPassed;
     double *currentTime;
-
+    string DefaultTitle;
 public:
-    fpsCounter(GLFWwindow *win, double *time)
+    fpsCounter(GLFWwindow *win, double *time, string title)
     {
         window = win;
         lastTime = glfwGetTime();
         currentTime = time;
+        DefaultTitle = title;
     }
     void updateFPS()
     {
@@ -153,7 +155,7 @@ public:
         if ((*currentTime - lastTime) > 1.0f)
         {
             double fps = framesPassed / (*currentTime - lastTime);
-            string title = "earth (FPS : " + to_string(fps) + ")";
+            string title = DefaultTitle + " (FPS : " + to_string(fps) + ")";
             glfwSetWindowTitle(window, title.c_str());
             lastTime = *currentTime;
             framesPassed = 0;
@@ -183,8 +185,8 @@ class SingleObject {
             objectProgram = createShaderProgram(vertPath, fragPath);
             // initialize the camera position
             glUseProgram(objectProgram);
-            projLoc = glGetUniformLocation(renderingProgram, "proj_matrix");
-            mvLoc = glGetUniformLocation(renderingProgram, "mv_matrix");
+            projLoc = glGetUniformLocation(objectProgram, "proj_matrix");
+            mvLoc = glGetUniformLocation(objectProgram, "mv_matrix");
             pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
             vMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.5f));
             mMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
@@ -203,12 +205,10 @@ class SingleObject {
                 }
                 if (tokens.size() > 0)
                 {
-                    if (tokens[0] == "#" || tokens[0] == "mtllib" || tokens[0] == "s")
-                    {
+                    if (tokens[0] == "#" || tokens[0] == "mtllib" || tokens[0] == "s") {
                     continue;
                     }
-                    else if (tokens[0] == "v")
-                    {
+                    else if (tokens[0] == "v") {
                         if (tokens.size() < 4) {
                             cout << "critical error : invalid entry in an object file." << endl;
                             continue;
@@ -216,11 +216,10 @@ class SingleObject {
                         glm::vec3 tmp(stof(tokens[1]), stof(tokens[2]), stof(tokens[3]));
                         vertices.push_back(tmp);
                         numVertices++;
-                    }
-                    else if (tokens[0] == "vn") {
+                    } else if (tokens[0] == "vn") {
                         if (tokens.size() < 4) {
                             cout << "critical error : invalid entry in an object file." << endl;
-                           continue;
+                            continue;
                         }
                         glm::vec3 tmp(stof(tokens[1]), stof(tokens[2]), stof(tokens[3]));
                         normals.push_back(tmp);
@@ -238,20 +237,45 @@ class SingleObject {
                             continue;
                         }
                         // split the tokens in numbers, and do the operations
-                        for (int i = 1; i < tokens.size(); i++) {
-                            string number;
-                            stringstream sn(tokens[i]);
-                            while (getline(sn, number, '/')) {
+                        if (tokens.size() - 1 == 3) {
+                            for (int i = 1; i < tokens.size(); i++) {
+                                string number;
+                                stringstream sn(tokens[i]);
+                                getline(sn, number, '/');
+                                int x;
+                                from_chars(number.data(), number.data() + number.size(), x);
+                                x--;
+                                indices.push_back(x);
+                            }
+                        } else if (tokens.size() - 1 == 4) {
+                            for (int i = 1; i <= 3; i++) {
+                                string number;
+                                stringstream sn(tokens[i]);
+                                getline(sn, number, '/');
+                                int x;
+                                from_chars(number.data(), number.data() + number.size(), x);
+                                x--;
+                                indices.push_back(x);
+                            }
+                            for (int i = 1; i <= 4; i++) {
+                                if (i == 2) {
+                                    i++;
+                                }
+                                string number;
+                                stringstream sn(tokens[i]);
+                                getline(sn, number, '/');
                                 int x;
                                 from_chars(number.data(), number.data() + number.size(), x);
                                 x--;
                                 indices.push_back(x);
                             }
                         }
-
                     }
                 }
             }
+        }
+        void UpdateAspect(float aspect) {
+            pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
         }
         void initTexture(string pathOfTheTexture, int flag1, unsigned int flag2, unsigned int flag3) {
             textureID = new GLuint[1];
@@ -274,11 +298,11 @@ class SingleObject {
             glBindVertexArray(vao[0]);
             glGenBuffers(3, vbo);
             glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * 4, &vertices[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
             glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-            glBufferData(GL_ARRAY_BUFFER, texCoords.size() * 4, &texCoords[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, texCoords.size() * sizeof(glm::vec2), &texCoords[0], GL_STATIC_DRAW);
             glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-            glBufferData(GL_ARRAY_BUFFER, normals.size() * 4, &normals[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
         }
         void PrepDisplayObjectGeneric() {
             glUseProgram(objectProgram);
@@ -300,8 +324,12 @@ class SingleObject {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glBindTexture(GL_TEXTURE_2D, textureID[i]);
             }
+            glEnable(GL_DEPTH_TEST);
         } 
         void GenericDraw() {
-            glDrawArrays(GL_TRIANGLES, 0, indices.size());
+            for (int i = 0; i < texCoords.size(); i++) {
+                cout << i << " : " << normals[i].x << " " << normals[i].y << " " << normals[i].z << endl;
+            }
+            glDrawArrays(GL_TRIANGLES, 0, vertices.size());
         }
 };
