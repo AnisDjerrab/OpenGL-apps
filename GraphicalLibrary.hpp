@@ -1,4 +1,8 @@
 #include <cmath>
+#include <complex>
+#include <glm/detail/qualifier.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/trigonometric.hpp>
 #include <vector>
 #include <iostream>
 #include "libs/SOIL2.h"
@@ -12,6 +16,7 @@
 #include <string>
 #include <sstream>
 #include <charconv>
+#include <memory>
 
 using namespace std;
 
@@ -163,6 +168,12 @@ public:
     }
 };
 
+struct indice {
+    unsigned int v;
+    unsigned int vt;
+    unsigned int vn;
+};
+
 class SingleObject {
     private:
         GLuint objectProgram;
@@ -172,7 +183,7 @@ class SingleObject {
         GLuint projLoc;
     public:
         int numVertices = 0;
-        vector<int> indices;
+        vector<indice*> indices;
         vector<glm::vec3> vertices;
         vector<glm::vec2> texCoords;
         vector<glm::vec3> normals;
@@ -188,10 +199,13 @@ class SingleObject {
             projLoc = glGetUniformLocation(objectProgram, "proj_matrix");
             mvLoc = glGetUniformLocation(objectProgram, "mv_matrix");
             pMat = glm::perspective(1.0472f, aspect, 0.1f, 1000.0f);
-            vMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.5f));
+            vMat = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 0.0f, -13.0f));
             mMat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
             mvMat = vMat * mMat;
             // now the essential step : parse the blender (or other) obj file
+            vector<glm::vec3> tmp_vertices;
+            vector<glm::vec2> tmp_texCoords;
+            vector<glm::vec3> tmp_normals;
             fstream ObjectFile(ObjectPath);
             string line;
             while (getline(ObjectFile, line))
@@ -214,7 +228,7 @@ class SingleObject {
                             continue;
                         }
                         glm::vec3 tmp(stof(tokens[1]), stof(tokens[2]), stof(tokens[3]));
-                        vertices.push_back(tmp);
+                        tmp_vertices.push_back(tmp);
                         numVertices++;
                     } else if (tokens[0] == "vn") {
                         if (tokens.size() < 4) {
@@ -222,15 +236,16 @@ class SingleObject {
                             continue;
                         }
                         glm::vec3 tmp(stof(tokens[1]), stof(tokens[2]), stof(tokens[3]));
-                        normals.push_back(tmp);
+                        tmp_normals.push_back(tmp);
                     } else if (tokens[0] == "vt") {
                         if (tokens.size() < 3) {
                             cout << "critical error : invalid entry in an object file." << endl;
                             continue;
                         }
                         glm::vec2 tmp(stof(tokens[1]), stof(tokens[2]));
-                        texCoords.push_back(tmp);
+                        tmp_texCoords.push_back(tmp);
                     } else if (tokens[0] == "f") {
+                        unique_ptr<indice> ind = unique_ptr<indice>(new indice());
                         // check that the number of tokens above two
                         if (tokens.size() < 4) {
                             cout << "critical error : invalid entry in an object file." << endl;
@@ -238,40 +253,103 @@ class SingleObject {
                         }
                         // split the tokens in numbers, and do the operations
                         if (tokens.size() - 1 == 3) {
-                            for (int i = 1; i < tokens.size(); i++) {
+                            for (int i = 1; i < 4; i++) {
+                                vector<int> tmp;
                                 string number;
                                 stringstream sn(tokens[i]);
-                                getline(sn, number, '/');
-                                int x;
-                                from_chars(number.data(), number.data() + number.size(), x);
-                                x--;
-                                indices.push_back(x);
+                                while (getline(sn, number, '/')) {
+                                    int x;
+                                    from_chars(number.data(), number.data() + number.size(), x);
+                                    x--;
+                                    tmp.push_back(x);
+                                }
+                                ind->v = tmp[0];
+                                ind->vt = tmp[1];
+                                ind->vn = tmp[2];
+                                indices.push_back(ind.release());
+                                ind = unique_ptr<indice>(new indice());
                             }
                         } else if (tokens.size() - 1 == 4) {
-                            for (int i = 1; i <= 3; i++) {
+                            for (int i = 1; i < 4; i++) {
+                                vector<int> tmp;
                                 string number;
                                 stringstream sn(tokens[i]);
-                                getline(sn, number, '/');
-                                int x;
-                                from_chars(number.data(), number.data() + number.size(), x);
-                                x--;
-                                indices.push_back(x);
+                                while (getline(sn, number, '/')) {
+                                    int x;
+                                    from_chars(number.data(), number.data() + number.size(), x);
+                                    x--;
+                                    tmp.push_back(x);
+                                }
+                                ind->v = tmp[0];
+                                ind->vt = tmp[1];
+                                ind->vn = tmp[2];
+                                indices.push_back(ind.release());
+                                ind = unique_ptr<indice>(new indice());
                             }
-                            for (int i = 1; i <= 4; i++) {
+                            for (int i = 1; i < 5; i++) {
+                                vector<int> tmp;
+                                string number;
+                                stringstream sn(tokens[i]);
+                                while (getline(sn, number, '/')) {
+                                    int x;
+                                    from_chars(number.data(), number.data() + number.size(), x);
+                                    x--;
+                                    tmp.push_back(x);
+                                }
+                                ind->v = tmp[0];
+                                ind->vt = tmp[1];
+                                ind->vn = tmp[2];
+                                indices.push_back(ind.release());
+                                ind = unique_ptr<indice>(new indice());
                                 if (i == 2) {
                                     i++;
                                 }
+                            }
+                        } else if (tokens.size() - 1 == 5) {
+                            for (int i = 1; i < 4; i++) {
+                                vector<int> tmp;
                                 string number;
                                 stringstream sn(tokens[i]);
-                                getline(sn, number, '/');
-                                int x;
-                                from_chars(number.data(), number.data() + number.size(), x);
-                                x--;
-                                indices.push_back(x);
+                                while (getline(sn, number, '/')) {
+                                    int x;
+                                    from_chars(number.data(), number.data() + number.size(), x);
+                                    x--;
+                                    tmp.push_back(x);
+                                }
+                                ind->v = tmp[0];
+                                ind->vt = tmp[1];
+                                ind->vn = tmp[2];
+                                indices.push_back(ind.release());
+                                ind = unique_ptr<indice>(new indice());
+                            }
+                            for (int i = 1; i < 6; i++) {
+                                vector<int> tmp;
+                                string number;
+                                stringstream sn(tokens[i]);
+                                while (getline(sn, number, '/')) {
+                                    int x;
+                                    from_chars(number.data(), number.data() + number.size(), x);
+                                    x--;
+                                    tmp.push_back(x);
+                                }
+                                ind->v = tmp[0];
+                                ind->vt = tmp[1];
+                                ind->vn = tmp[2];
+                                indices.push_back(ind.release());
+                                ind = unique_ptr<indice>(new indice());
+                                if (i == 2) {
+                                    i+=2;
+                                }
                             }
                         }
                     }
                 }
+            }
+            for (int i = 0; i < indices.size(); i++) {
+                normals.push_back(tmp_normals[indices[i]->vn]);
+                vertices.push_back(tmp_vertices[indices[i]->v]);
+                texCoords.push_back(tmp_texCoords[indices[i]->vt]);
+                delete indices[i];
             }
         }
         void UpdateAspect(float aspect) {
@@ -325,11 +403,8 @@ class SingleObject {
                 glBindTexture(GL_TEXTURE_2D, textureID[i]);
             }
             glEnable(GL_DEPTH_TEST);
-        } 
+        }
         void GenericDraw() {
-            for (int i = 0; i < texCoords.size(); i++) {
-                cout << i << " : " << normals[i].x << " " << normals[i].y << " " << normals[i].z << endl;
-            }
-            glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+            glDrawArrays(GL_TRIANGLES, 0, indices.size());
         }
 };

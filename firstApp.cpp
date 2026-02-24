@@ -65,4 +65,4 @@ int main() {
     return 0;
 }
 
-// compilation command : g++ firstApp.cpp -o firstApp -lGLEW -lglfw -lGL -ldlg++ firstApp.cpp -o firstApp -lGLEW -lglfw -lGL -ldl
+// compilation command : g++ firstApp.cpp -o firstApp -lGLEW -lglfw -lGL -ldl

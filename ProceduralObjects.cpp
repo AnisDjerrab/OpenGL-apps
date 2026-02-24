@@ -1,4 +1,3 @@
-#include <iostream>
 #include "libs/SOIL2.h"
 #include "GraphicalLibrary.hpp"
 
@@ -71,7 +70,7 @@ void SetupVertices()
     };
     float groundTexCoords[] = {
         0.0f,    0.0f,
-        1.0f,    0.0f,    
+        1.0f,    0.0f,
         1.0f,    1.0f,
         0.0f,    1.0f
     };
@@ -94,7 +93,7 @@ void init()
 }
 
 void display(GLFWwindow* window)
-{   
+{
     fps->updateFPS();
     if (rotationAngle >= 360.0f) {
         rotationAngle = -1.0f;
@@ -132,7 +131,7 @@ void display(GLFWwindow* window)
     glEnableVertexAttribArray(1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);   
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);

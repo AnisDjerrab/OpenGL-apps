@@ -1,4 +1,3 @@
-#include <iostream>
 #include "GraphicalLibrary.hpp"
 
 float aspect;
